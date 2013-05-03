@@ -6,7 +6,7 @@ include LogWeaverTaskUtil
 # -----------------------------------------------------------------------------
 namespace :log_weaver do
 	# Only requirement is for $1 to be the date and time of this action
-	NEW_ACTION_REGEX = /Processing.*?(2010[^\)]*).*/ # e.g. Processing SiteHelpController#index (for 127.0.0.1 at 2010-02-21 13:30:54) [GET] on PID 10795
+	NEW_ACTION_REGEX = /Started.*?(2013[^\)]*).*/ # e.g. Processing SiteHelpController#index (for 127.0.0.1 at 2010-02-21 13:30:54) [GET] on PID 10795
 	SIZE_OF_HASH_BLOCKS = 10000 # Bigger number = faster parsing, but more memory.
 	MAX_TIME_BETWEEN_CONTROLLER_ACTIONS = 10.minutes
 
@@ -25,11 +25,12 @@ namespace :log_weaver do
 			# Grab logfiles from remote hosts and put them in our working directory
 			config_file["hosts_to_unify"].each_pair do |host_name, host_values|
 				host_name_sym = host_name.to_sym
-				host_ip, path_to_logfile = host_values["address"], host_values["log_location"]
+				host_ip, user, path_to_logfile = host_values["address"], host_values["user"], host_values["log_location"]
+        port = host_values["port"] || 22
 				# Working log file formatted a la working_1_2_3_4_production.log
 				working_log_name = "working_#{host_ip.gsub('.', '_')}_" + File.basename(path_to_logfile)
 
-				rsync_input = %{rsync -Pa #{host_ip}:#{path_to_logfile} #{working_directory}/#{working_log_name} > transfer_output.txt} # hack: pipe output to avoid "pipe broken" errors
+				rsync_input = %{rsync -e 'ssh -p #{port}' -Pa #{user}@#{host_ip}:#{path_to_logfile} #{working_directory}/#{working_log_name} > transfer_output.txt} # hack: pipe output to avoid "pipe broken" errors
 				logger.info("Beginning rsync with #{host_ip} at #{Time.now.strftime("%X")}: #{rsync_input}.")
 				system rsync_input
 				logger.info("Finished rsync with #{host_ip} at #{Time.now.strftime("%X")}.")

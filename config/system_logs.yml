@@ -3,10 +3,16 @@ maximum_unified_log_size: 300000000 # That's 300MB
 hosts_to_unify:
   host_1:
     address: 1.2.3.4
+    port: 22
+    user: me
     log_location: /path/to/production.log
   host_2:
     address: 1.2.3.5
+    port: 22
+    user: me
     log_location: /path/to/production.log
   host_3:
     address: 1.2.3.6
+    port: 22
+    user: me
     log_location: /path/to/production.log
